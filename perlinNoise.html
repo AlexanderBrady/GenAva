@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perlin Noise Avatar Generator with Face</title>
+    <title>Perlin Noise Avatar Generator with Different Patterns</title>
     <style>
         body {
             display: flex;
@@ -54,14 +54,14 @@
         const gridSize = 10;
         const cellSize = 20; // 200px / 10 cells
         const svgNS = "http://www.w3.org/2000/svg";
-        const noise = new SimplexNoise();
 
-        function getRandomColors() {
-            const colors = [];
-            for (let i = 0; i < 3; i++) {
-                colors.push(`hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`);
-            }
-            return colors;
+        function getOppositeColors() {
+            const baseHue = Math.floor(Math.random() * 360);
+            return [
+                `hsl(${baseHue}, 70%, 50%)`,
+                `hsl(${(baseHue + 120) % 360}, 70%, 50%)`,
+                `hsl(${(baseHue + 240) % 360}, 70%, 50%)`
+            ];
         }
 
         function goToStep2() {
@@ -78,8 +78,8 @@
         function generateAvatarOptions() {
             const avatarOptionsDiv = document.getElementById('avatarOptions');
             avatarOptionsDiv.innerHTML = '';
-            for (let i = 0; i < 5; i++) { // Generate 5 example avatars
-                const svg = generateAvatarSVG();
+            for (let i = 0; i < 5; i++) { // Generate 5 example avatars with different patterns
+                const svg = generateAvatarSVG(Math.random());
                 const img = document.createElement('img');
                 img.src = svgToBase64(svg);
                 img.onclick = () => selectAvatar(svg);
@@ -91,7 +91,7 @@
             document.getElementById('step2').classList.add('hidden');
             document.getElementById('step3').classList.remove('hidden');
 
-            const svg = generateAvatarSVG();
+            const svg = generateAvatarSVG(Math.random());
             const avatarDiv = document.getElementById('avatar');
             avatarDiv.innerHTML = '';
             avatarDiv.appendChild(svg);
@@ -105,12 +105,14 @@
             avatarDiv.appendChild(svg);
         }
 
-        function generateAvatarSVG() {
-            const colors = getRandomColors();
+        function generateAvatarSVG(seed) {
+            const colors = getOppositeColors();
             const svg = document.createElementNS(svgNS, "svg");
             svg.setAttribute("width", gridSize * cellSize);
             svg.setAttribute("height", gridSize * cellSize);
             svg.setAttribute("viewBox", `0 0 ${gridSize * cellSize} ${gridSize * cellSize}`);
+
+            const noise = new SimplexNoise(seed);
 
             for (let y = 0; y < gridSize; y++) {
                 for (let x = 0; x < gridSize; x++) {
@@ -120,57 +122,7 @@
                 }
             }
 
-            // Overlay face template
-            overlayFaceTemplate(svg);
-
             return svg;
-        }
-
-        function overlayFaceTemplate(svg) {
-            // Define face template (eyes, nose, mouth)
-            const eyeRadius = cellSize / 4;
-            const eyeY = cellSize * 2.5;
-            const leftEyeX = cellSize * 3;
-            const rightEyeX = cellSize * 7;
-
-            const noseWidth = cellSize;
-            const noseHeight = cellSize / 2;
-            const noseX = (gridSize / 2) * cellSize - noseWidth / 2;
-            const noseY = cellSize * 4.5;
-
-            const mouthWidth = cellSize * 3;
-            const mouthHeight = cellSize / 4;
-            const mouthX = (gridSize / 2) * cellSize - mouthWidth / 2;
-            const mouthY = cellSize * 7;
-
-            // Draw eyes
-            drawCircle(svg, leftEyeX, eyeY, eyeRadius, "white");
-            drawCircle(svg, rightEyeX, eyeY, eyeRadius, "white");
-
-            // Draw nose
-            drawRect(svg, noseX, noseY, noseWidth, noseHeight, "white");
-
-            // Draw mouth
-            drawRect(svg, mouthX, mouthY, mouthWidth, mouthHeight, "white");
-        }
-
-        function drawCircle(svg, cx, cy, r, fill) {
-            const circle = document.createElementNS(svgNS, "circle");
-            circle.setAttribute("cx", cx);
-            circle.setAttribute("cy", cy);
-            circle.setAttribute("r", r);
-            circle.setAttribute("fill", fill);
-            svg.appendChild(circle);
-        }
-
-        function drawRect(svg, x, y, width, height, fill) {
-            const rect = document.createElementNS(svgNS, "rect");
-            rect.setAttribute("x", x);
-            rect.setAttribute("y", y);
-            rect.setAttribute("width", width);
-            rect.setAttribute("height", height);
-            rect.setAttribute("fill", fill);
-            svg.appendChild(rect);
         }
 
         function valueToColor(value, colors) {
