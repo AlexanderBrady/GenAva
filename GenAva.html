@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Symmetrical 10x10 Pixel Avatar Generator</title>
+    <title>Avatar Generator</title>
     <style>
         body {
             display: flex;
@@ -14,20 +14,37 @@
             margin: 0;
             background-color: #f0f0f0;
         }
+        .hidden {
+            display: none;
+        }
         #avatar {
             width: 200px;
             height: 200px;
             border: 1px solid #ccc;
             margin-bottom: 20px;
         }
-        button {
+        input, button {
             margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div id="avatar"></div>
-    <button onclick="generateAvatar()">Generate Avatar</button>
+    <div id="step1">
+        <h2>Enter your email</h2>
+        <input type="text" id="emailInput" placeholder="Enter your email">
+        <button onclick="goToStep2()">Next</button>
+    </div>
+    <div id="step2" class="hidden">
+        <h2>Select an avatar or skip</h2>
+        <div id="avatarOptions">
+            <!-- Avatar options will be dynamically added here -->
+        </div>
+        <button onclick="generateAvatar()">Skip</button>
+    </div>
+    <div id="step3" class="hidden">
+        <div id="avatar"></div>
+        <button onclick="saveAvatar()">Save Avatar</button>
+    </div>
 
     <script>
         const gridSize = 10;
@@ -42,13 +59,49 @@
             ];
         }
 
+        function goToStep2() {
+            const email = document.getElementById('emailInput').value;
+            if (email) {
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+                generateAvatarOptions();
+            } else {
+                alert('Please enter an email');
+            }
+        }
+
+        function generateAvatarOptions() {
+            const avatarOptionsDiv = document.getElementById('avatarOptions');
+            avatarOptionsDiv.innerHTML = '';
+            for (let i = 0; i < 5; i++) { // Generate 5 example avatars
+                const svg = generateAvatarSVG();
+                const img = document.createElement('img');
+                img.src = svgToBase64(svg);
+                img.onclick = () => selectAvatar(svg);
+                avatarOptionsDiv.appendChild(img);
+            }
+        }
+
         function generateAvatar() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+
+            const svg = generateAvatarSVG();
             const avatarDiv = document.getElementById('avatar');
             avatarDiv.innerHTML = '';
+            avatarDiv.appendChild(svg);
+        }
 
+        function selectAvatar(svg) {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+            const avatarDiv = document.getElementById('avatar');
+            avatarDiv.innerHTML = '';
+            avatarDiv.appendChild(svg);
+        }
+
+        function generateAvatarSVG() {
             const colors = getRandomColorPair();
-            console.log('Colors:', colors);
-
             const svg = document.createElementNS(svgNS, "svg");
             svg.setAttribute("width", gridSize * cellSize);
             svg.setAttribute("height", gridSize * cellSize);
@@ -63,12 +116,7 @@
                     drawCell(svg, gridSize - 1 - x, y, color); // Mirror horizontally
                 }
             }
-
-            avatarDiv.appendChild(svg);
-
-            // Convert SVG to Base64 and log the result
-            const base64Image = svgToBase64(svg);
-            console.log(base64Image);
+            return svg;
         }
 
         function drawCell(svg, x, y, color) {
@@ -85,6 +133,13 @@
             const svgString = new XMLSerializer().serializeToString(svg);
             const base64 = window.btoa(unescape(encodeURIComponent(svgString)));
             return `data:image/svg+xml;base64,${base64}`;
+        }
+
+        function saveAvatar() {
+            const svg = document.querySelector('#avatar svg');
+            const base64Image = svgToBase64(svg);
+            console.log('Avatar saved:', base64Image);
+            // Additional code to handle saving the avatar can be added here
         }
     </script>
 </body>
