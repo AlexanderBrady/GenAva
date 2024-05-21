@@ -92,6 +92,9 @@
             avatarDiv.appendChild(svg);
         }
 
+
+        
+
         function selectAvatar(svg) {
             document.getElementById('step2').classList.add('hidden');
             document.getElementById('step3').classList.remove('hidden');
@@ -139,7 +142,6 @@
             const svg = document.querySelector('#avatar svg');
             const base64Image = svgToBase64(svg);
             console.log('Avatar saved:', base64Image);
-            // Additional code to handle saving the avatar can be added here
         }
     </script>
 </body>
