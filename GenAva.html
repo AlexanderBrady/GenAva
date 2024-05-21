@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Face Avatar Generator</title>
+    <title>Symmetrical 10x10 Pixel Avatar Generator</title>
     <style>
         body {
             display: flex;
@@ -20,75 +20,71 @@
             border: 1px solid #ccc;
             margin-bottom: 20px;
         }
-        input, button {
+        button {
             margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div id="avatar"></div>
-    <input type="text" id="emailInput" placeholder="Enter your email">
     <button onclick="generateAvatar()">Generate Avatar</button>
 
     <script>
-        const maleOutline = 'SVG/male.svg';
-        const femaleOutline = 'SVG/female.svg';
-        const eyes = ['SVG/eyes1.svg', 'SVG/eyes2.svg'];
-        const noses = ['SVG/nose1.svg', 'SVG/nose2.svg'];
-        const mouths = ['SVG/mouth1.svg'];
+        const gridSize = 10;
+        const cellSize = 20; // 200px / 10 cells
+        const svgNS = "http://www.w3.org/2000/svg";
 
-        function getRandomElement(array) {
-            return array[Math.floor(Math.random() * array.length)];
+        function getRandomColorPair() {
+            const baseColor = Math.floor(Math.random() * 360);
+            return [
+                `hsl(${baseColor}, 70%, 50%)`,
+                `hsl(${(baseColor + 30) % 360}, 70%, 50%)`
+            ];
         }
 
         function generateAvatar() {
-            const email = document.getElementById('emailInput').value;
             const avatarDiv = document.getElementById('avatar');
-
             avatarDiv.innerHTML = '';
 
-            const outline = Math.random() < 0.5 ? maleOutline : femaleOutline;
-            const eye = getRandomElement(eyes);
-            const nose = getRandomElement(noses);
-            const mouth = getRandomElement(mouths);
+            const colors = getRandomColorPair();
+            console.log('Colors:', colors);
 
-            const svgNS = "http://www.w3.org/2000/svg";
             const svg = document.createElementNS(svgNS, "svg");
-            svg.setAttribute("width", "200");
-            svg.setAttribute("height", "200");
-            svg.setAttribute("viewBox", "0 0 200 200");
+            svg.setAttribute("width", gridSize * cellSize);
+            svg.setAttribute("height", gridSize * cellSize);
+            svg.setAttribute("viewBox", `0 0 ${gridSize * cellSize} ${gridSize * cellSize}`);
 
-            const outlineElement = document.createElementNS(svgNS, "image");
-            outlineElement.setAttributeNS("http://www.w3.org/1999/xlink", "href", outline);
-            outlineElement.setAttribute("width", "200");
-            outlineElement.setAttribute("height", "200");
-            svg.appendChild(outlineElement);
+            const halfGridSize = Math.ceil(gridSize / 2);
 
-            const eyeElement = document.createElementNS(svgNS, "image");
-            eyeElement.setAttributeNS("http://www.w3.org/1999/xlink", "href", eye);
-            eyeElement.setAttribute("x", "65"); // Adjust x position for eyes
-            eyeElement.setAttribute("y", "60"); // Adjust y position for eyes
-            eyeElement.setAttribute("width", "70"); // Adjust width for eyes
-            eyeElement.setAttribute("height", "20"); // Adjust height for eyes
-            svg.appendChild(eyeElement);
-
-            const noseElement = document.createElementNS(svgNS, "image");
-            noseElement.setAttributeNS("http://www.w3.org/1999/xlink", "href", nose);
-            noseElement.setAttribute("x", "90"); // Center x position for nose
-            noseElement.setAttribute("y", "70"); // Adjust y position for nose
-            noseElement.setAttribute("width", "20"); // Adjust width for nose
-            noseElement.setAttribute("height", "20"); // Adjust height for nose
-            svg.appendChild(noseElement);
-
-            const mouthElement = document.createElementNS(svgNS, "image");
-            mouthElement.setAttributeNS("http://www.w3.org/1999/xlink", "href", mouth);
-            mouthElement.setAttribute("x", "85"); // Adjust x position for mouth
-            mouthElement.setAttribute("y", "90"); // Adjust y position for mouth
-            mouthElement.setAttribute("width", "30"); // Adjust width for mouth
-            mouthElement.setAttribute("height", "15"); // Adjust height for mouth
-            svg.appendChild(mouthElement);
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < halfGridSize; x++) {
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    drawCell(svg, x, y, color);
+                    drawCell(svg, gridSize - 1 - x, y, color); // Mirror horizontally
+                }
+            }
 
             avatarDiv.appendChild(svg);
+
+            // Convert SVG to Base64 and log the result
+            const base64Image = svgToBase64(svg);
+            console.log(base64Image);
+        }
+
+        function drawCell(svg, x, y, color) {
+            const rect = document.createElementNS(svgNS, "rect");
+            rect.setAttribute("x", x * cellSize);
+            rect.setAttribute("y", y * cellSize);
+            rect.setAttribute("width", cellSize);
+            rect.setAttribute("height", cellSize);
+            rect.setAttribute("fill", color);
+            svg.appendChild(rect);
+        }
+
+        function svgToBase64(svg) {
+            const svgString = new XMLSerializer().serializeToString(svg);
+            const base64 = window.btoa(unescape(encodeURIComponent(svgString)));
+            return `data:image/svg+xml;base64,${base64}`;
         }
     </script>
 </body>
