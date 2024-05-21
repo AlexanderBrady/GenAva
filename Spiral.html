@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiral Avatar Generator</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .hidden {
+            display: none;
+        }
+        #avatar {
+            width: 200px;
+            height: 200px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="step1">
+        <h2>Enter your email</h2>
+        <input type="text" id="emailInput" placeholder="Enter your email">
+        <button onclick="goToStep2()">Next</button>
+    </div>
+    <div id="step2" class="hidden">
+        <h2>Select an avatar or skip</h2>
+        <div id="avatarOptions">
+            <!-- Avatar options will be dynamically added here -->
+        </div>
+        <button onclick="generateAvatar()">Skip</button>
+    </div>
+    <div id="step3" class="hidden">
+        <div id="avatar"></div>
+        <button onclick="saveAvatar()">Save Avatar</button>
+    </div>
+
+    <script>
+        const gridSize = 10;
+        const cellSize = 20; // 200px / 10 cells
+        const svgNS = "http://www.w3.org/2000/svg";
+
+        function getRandomContrastingColors() {
+            const random = Math.floor(Math.random() * 360)
+            const color1 = `hsl(${random}, 70%, 50%)`;
+            const color2 = `hsl(${(random + 180) % 360}, 70%, 50%)`;
+            return [color1, color2];
+        }
+
+        function goToStep2() {
+            const email = document.getElementById('emailInput').value;
+            if (email) {
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+                generateAvatarOptions();
+            } else {
+                alert('Please enter an email');
+            }
+        }
+
+        function generateAvatarOptions() {
+            const avatarOptionsDiv = document.getElementById('avatarOptions');
+            avatarOptionsDiv.innerHTML = '';
+            for (let i = 0; i < 5; i++) { // Generate 5 example avatars
+                const svg = generateAvatarSVG();
+                const img = document.createElement('img');
+                img.src = svgToBase64(svg);
+                img.onclick = () => selectAvatar(svg);
+                avatarOptionsDiv.appendChild(img);
+            }
+        }
+
+        function generateAvatar() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+
+            const svg = generateAvatarSVG();
+            const avatarDiv = document.getElementById('avatar');
+            avatarDiv.innerHTML = '';
+            avatarDiv.appendChild(svg);
+        }
+
+        function selectAvatar(svg) {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+            const avatarDiv = document.getElementById('avatar');
+            avatarDiv.innerHTML = '';
+            avatarDiv.appendChild(svg);
+        }
+
+        function generateAvatarSVG() {
+            const [backgroundColor, spiralColor] = getRandomContrastingColors();
+            const svg = document.createElementNS(svgNS, "svg");
+            svg.setAttribute("width", gridSize * cellSize);
+            svg.setAttribute("height", gridSize * cellSize);
+            svg.setAttribute("viewBox", `0 0 ${gridSize * cellSize} ${gridSize * cellSize}`);
+
+            // Background
+            const background = document.createElementNS(svgNS, "rect");
+            background.setAttribute("width", "100%");
+            background.setAttribute("height", "100%");
+            background.setAttribute("fill", backgroundColor);
+            svg.appendChild(background);
+
+            // Spiral
+            const spiralPath = generateSpiralPath(spiralColor, 100, 100, 90);
+            svg.appendChild(spiralPath);
+
+            return svg;
+        }
+
+        function generateSpiralPath(color, cx, cy, radius) {
+            const path = document.createElementNS(svgNS, "path");
+            let d = `M ${cx} ${cy}`;
+
+            for (let angle = 0; angle <= 720; angle += 5) {
+                const rad = (Math.PI / 180) * angle;
+                const x = cx + radius * Math.cos(rad) * angle / 720;
+                const y = cy + radius * Math.sin(rad) * angle / 720;
+                d += ` L ${x} ${y}`;
+            }
+
+            path.setAttribute("d", d);
+            path.setAttribute("stroke", color);
+            path.setAttribute("stroke-width", 2);
+            path.setAttribute("fill", "none");
+
+            return path;
+        }
+
+        function svgToBase64(svg) {
+            const svgString = new XMLSerializer().serializeToString(svg);
+            const base64 = window.btoa(unescape(encodeURIComponent(svgString)));
+            return `data:image/svg+xml;base64,${base64}`;
+        }
+
+        function saveAvatar() {
+            const svg = document.querySelector('#avatar svg');
+            const base64Image = svgToBase64(svg);
+            console.log('Avatar saved:', base64Image);
+            // Additional code to handle saving the avatar can be added here
+        }
+    </script>
+</body>
+</html>
